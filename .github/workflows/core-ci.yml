@@ -1,0 +1,31 @@
+name: CI Core Service
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - "backend/banking-system-v1/core-service/**"
+      - "backend/banking-system-v1/common/**"
+      - "backend/banking-system-v1/pom.xml"
+      - "backend/banking-system-v1/mvnw"
+      - "backend/banking-system-v1/.mvn/**"
+      - ".github/workflows/core-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: maven
+
+      - name: Build and Test
+        working-directory: ./backend/banking-system-v1
+        run: ./mvnw -B -pl core-service -am verify

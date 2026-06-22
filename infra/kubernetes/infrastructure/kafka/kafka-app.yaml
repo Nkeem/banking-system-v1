@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kafka-1
+  namespace: argocd
+spec:
+  project: banking
+  source:
+    repoURL: "oci://registry-1.docker.io/soldevelo/kafka-chart"
+    chart: kafka
+    targetRevision: 32.4.4
+    helm:
+      values: |
+        replicaCount: 3
+        listeners:
+          client:
+            protocol: PLAINTEXT
+          controller:
+            protocol: PLAINTEXT
+          interbroker:
+            protocol: PLAINTEXT
+        persistence:
+          enabled: true
+          size: 2Gi
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "512Mi"
+          limits:
+            cpu: "700m"
+            memory: "1024Mi"
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: node-role.kubernetes.io/control-plane
+                      operator: DoesNotExist
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: banking-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
